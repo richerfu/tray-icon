@@ -140,6 +140,40 @@ pub use self::error::*;
 pub use self::icon::{BadIcon, Icon};
 pub use self::tray_icon_id::TrayIconId;
 
+/// Set the OHOS app context for tray icon initialization.
+///
+/// This must be called before creating any tray icons on OpenHarmony.
+/// Tauri calls this automatically during app initialization.
+///
+/// First registration wins: the app slot is claimed once per process (an
+/// atomic check-and-claim ahead of plugin registration), and any later call —
+/// whether it passes the same `OpenHarmonyApp` again or a different one — is
+/// ignored with a warning; the first registration stays authoritative for the
+/// process lifetime. The duplicate guard does not compare app identity, so a
+/// same-app re-entry warns the same way a different-app call does.
+#[cfg(target_env = "ohos")]
+pub fn set_ohos_app(app: openharmony_ability::OpenHarmonyApp) {
+    platform_impl::set_ohos_app(app);
+}
+
+/// Returns the last OHOS status-bar bridge error (if any).
+///
+/// Bridge calls are dispatched to a worker thread (fire-and-forget — blocking
+/// the caller would deadlock the TSFN event loop), so failures cannot be
+/// returned through the tray API's `Result`s; they are cached by the worker
+/// and exposed here for embedder (tauri) diagnostics.
+#[cfg(target_env = "ohos")]
+pub fn last_bridge_error() -> Option<crate::Error> {
+    platform_impl::last_bridge_error().map(crate::Error::OhosError)
+}
+
+/// Sends an icon click event into tray-icon's internal channel (for test
+/// simulation). Not part of the public API surface — kept exported
+/// (hidden from docs) for the frontend automation suite.
+#[cfg(target_env = "ohos")]
+#[doc(hidden)]
+pub use platform_impl::send_icon_click;
+
 /// Re-export of [muda](::muda) crate and used for tray context menu.
 pub mod menu {
     pub use muda::*;
@@ -147,6 +181,45 @@ pub mod menu {
 pub use muda::dpi;
 
 static COUNTER: Counter = Counter::new();
+
+/// QuickOperation configuration for OHOS left-click popup. **OHOS only**.
+///
+/// On OHOS, when a user left-clicks the tray icon, the system can show a popup panel
+/// rendered by a `StatusBarViewExtensionAbility`. This struct configures that popup.
+///
+/// On other platforms, this is silently ignored.
+#[derive(Debug, Clone)]
+pub struct QuickOperationConfig {
+    /// Popup title bar text. Overlong text shows ellipsis.
+    pub title: String,
+
+    /// Popup content area height in vp (must be > 0).
+    pub height: u32,
+
+    /// Name of the `StatusBarViewExtensionAbility` registered in `module.json5`.
+    /// Empty string disables the popup (left-click only fires `statusBarIconClick` event).
+    pub ability_name: String,
+
+    /// Module name where the ExtensionAbility is defined.
+    /// `None` uses the default module.
+    pub module_name: Option<String>,
+
+    /// Whether to show a loading animation.
+    /// Requires OHOS 6.0.0(20)+. `None` uses system default.
+    pub loading_status: Option<bool>,
+}
+
+impl Default for QuickOperationConfig {
+    fn default() -> Self {
+        Self {
+            title: String::new(),
+            height: 200,
+            ability_name: String::new(),
+            module_name: None,
+            loading_status: None,
+        }
+    }
+}
 
 /// Attributes to use when creating a tray icon.
 pub struct TrayIconAttributes {
@@ -173,6 +246,11 @@ pub struct TrayIconAttributes {
     pub icon: Option<Icon>,
 
     /// Tray icon temp dir path. **Linux only**.
+    ///
+    /// ## Platform-specific:
+    ///
+    /// - **OHOS:** no-op — icons are transferred through the bridge, not
+    ///   written to disk.
     pub temp_dir_path: Option<PathBuf>,
 
     /// Use the icon as a [template](https://developer.apple.com/documentation/appkit/nsimage/1520017-template?language=objc). **macOS only**.
@@ -180,17 +258,30 @@ pub struct TrayIconAttributes {
 
     /// Whether to show the tray menu on left click or not, default is `true`.
     ///
+    /// `None` (the default) means "not specified" — the platform default
+    /// (`true`) applies; `Some(_)` records an explicit request, which lets
+    /// unsupported platforms warn at build time instead of silently
+    /// accepting the value.
+    ///
     /// ## Platform-specific:
     ///
     /// - **Linux:** Unsupported.
-    pub menu_on_left_click: bool,
+    /// - **OHOS:** Unsupported — a warning is logged at build time when set.
+    ///   Left-click behavior is configured per-icon via
+    ///   [`TrayIcon::set_quick_operation`] instead.
+    pub menu_on_left_click: Option<bool>,
 
     /// Whether to show the tray menu on right click or not, default is `true`.
     ///
+    /// `None` (the default) means "not specified" — see
+    /// [`TrayIconAttributes::menu_on_left_click`].
+    ///
     /// ## Platform-specific:
     ///
     /// - **Linux:** Unsupported.
-    pub menu_on_right_click: bool,
+    /// - **OHOS:** Unsupported — a warning is logged at build time when set.
+    ///   Menu presentation for status bar icons is system-controlled.
+    pub menu_on_right_click: Option<bool>,
 
     /// Tray icon title.
     ///
@@ -203,6 +294,12 @@ pub struct TrayIconAttributes {
     ///   on the user's panel.  This may not be shown in all visualizations.
     /// - **Windows:** Unsupported.
     pub title: Option<String>,
+
+    /// QuickOperation configuration for left-click popup. **OHOS only**.
+    ///
+    /// On OHOS, configures the system popup panel shown when the user left-clicks
+    /// the tray icon. On other platforms, this field is silently ignored.
+    pub quick_operation: Option<QuickOperationConfig>,
 }
 
 impl Default for TrayIconAttributes {
@@ -213,9 +310,10 @@ impl Default for TrayIconAttributes {
             icon: None,
             temp_dir_path: None,
             icon_is_template: false,
-            menu_on_left_click: true,
-            menu_on_right_click: true,
+            menu_on_left_click: None,
+            menu_on_right_click: None,
             title: None,
+            quick_operation: None,
         }
     }
 }
@@ -294,12 +392,24 @@ impl TrayIconBuilder {
     ///
     /// On Linux, we need to write the icon to the disk and usually it will
     /// be `$XDG_RUNTIME_DIR/tray-icon` or `$TEMP/tray-icon`.
+    ///
+    /// ## Platform-specific:
+    ///
+    /// - **OHOS:** no-op — icons are transferred through the bridge, not
+    ///   written to disk. A warning is logged at build time when set,
+    ///   unlike [`TrayIcon::set_temp_dir_path`] which warns per call.
     pub fn with_temp_dir_path<P: AsRef<Path>>(mut self, s: P) -> Self {
         self.attrs.temp_dir_path = Some(s.as_ref().to_path_buf());
         self
     }
 
-    /// Use the icon as a [template](https://developer.apple.com/documentation/appkit/nsimage/1520017-template?language=objc). **macOS only**.
+    /// Use the icon as a [template](https://developer.apple.com/documentation/appkit/nsimage/1520017-template?language=objc).
+    ///
+    /// ## Platform-specific
+    ///
+    /// - **macOS**: Template image rendered by system based on appearance (dark/light mode).
+    /// - **OHOS**: Generates white and black versions from alpha mask; system selects based on wallpaper color.
+    /// - **Windows / Linux**: Unsupported.
     pub fn with_icon_as_template(mut self, is_template: bool) -> Self {
         self.attrs.icon_is_template = is_template;
         self
@@ -310,8 +420,12 @@ impl TrayIconBuilder {
     /// ## Platform-specific:
     ///
     /// - **Linux:** Unsupported.
+    /// - **OHOS:** Unsupported — a warning is logged at build time,
+    ///   matching [`TrayIcon::set_show_menu_on_left_click`]. Left-click
+    ///   behavior is configured per-icon via [`TrayIcon::set_quick_operation`]
+    ///   instead.
     pub fn with_menu_on_left_click(mut self, enable: bool) -> Self {
-        self.attrs.menu_on_left_click = enable;
+        self.attrs.menu_on_left_click = Some(enable);
         self
     }
 
@@ -320,9 +434,31 @@ impl TrayIconBuilder {
     /// ## Platform-specific:
     ///
     /// - **Linux:** Unsupported.
+    /// - **OHOS:** Unsupported — a warning is logged at build time,
+    ///   matching [`TrayIcon::set_show_menu_on_right_click`]. Menu
+    ///   presentation for status bar icons is system-controlled.
     pub fn with_menu_on_right_click(mut self, enable: bool) -> Self {
-        self.attrs.menu_on_right_click = enable;
+        self.attrs.menu_on_right_click = Some(enable);
         self
+    }
+
+    /// Set QuickOperation for left-click popup. **OHOS only**.
+    ///
+    /// On OHOS, configures the system popup panel shown when the user left-clicks
+    /// the tray icon. The popup is rendered by a `StatusBarViewExtensionAbility`
+    /// that the application registers in `module.json5`.
+    ///
+    /// On other platforms, this is silently ignored.
+    pub fn with_quick_operation(mut self, config: QuickOperationConfig) -> Self {
+        self.attrs.quick_operation = Some(config);
+        self
+    }
+
+    /// Returns the configured [`QuickOperationConfig`], if any. **OHOS only** —
+    /// embedders (tauri) use this to decide whether to layer their own
+    /// app-specific defaults on top.
+    pub fn quick_operation_config(&self) -> Option<&QuickOperationConfig> {
+        self.attrs.quick_operation.as_ref()
     }
 
     /// Access the unique id that will be assigned to the tray icon
@@ -384,6 +520,12 @@ impl TrayIcon {
     }
 
     /// Set new tray icon. If `None` is provided, it will remove the icon.
+    ///
+    /// ## Platform-specific:
+    ///
+    /// - **OHOS**: `None` clears the icon pixels but keeps the status-bar entry in
+    ///   place (the entry is not removed) — diverging from the line above on
+    ///   purpose; see the implementation notes in `platform_impl::ohos`.
     pub fn set_icon(&self, icon: Option<Icon>) -> Result<()> {
         self.tray.borrow_mut().set_icon(icon)
     }
@@ -429,6 +571,10 @@ impl TrayIcon {
     ///
     /// On Linux, we need to write the icon to the disk and usually it will
     /// be `$XDG_RUNTIME_DIR/tray-icon` or `$TEMP/tray-icon`.
+    ///
+    /// ## Platform-specific:
+    ///
+    /// - **OHOS:** no-op — icons are transferred through the bridge, not written to disk.
     pub fn set_temp_dir_path<P: AsRef<Path>>(&self, path: Option<P>) {
         #[cfg(any(
             target_os = "linux",
@@ -448,21 +594,29 @@ impl TrayIcon {
         let _ = path;
     }
 
-    /// Set the current icon as a [template](https://developer.apple.com/documentation/appkit/nsimage/1520017-template?language=objc). **macOS only**.
+    /// Set the current icon as a [template](https://developer.apple.com/documentation/appkit/nsimage/1520017-template?language=objc).
+    ///
+    /// ## Platform-specific
+    ///
+    /// - **macOS**: Template image rendered by system based on appearance (dark/light mode).
+    /// - **OHOS**: Generates white and black versions from alpha mask; system selects based on wallpaper color.
+    /// - **Windows / Linux**: Unsupported.
     pub fn set_icon_as_template(&self, is_template: bool) {
         #[cfg(target_os = "macos")]
         self.tray.borrow_mut().set_icon_as_template(is_template);
-        #[cfg(not(target_os = "macos"))]
+        #[cfg(target_env = "ohos")]
+        let _ = self.tray.borrow_mut().set_icon_as_template(is_template);
+        #[cfg(not(any(target_os = "macos", target_env = "ohos")))]
         let _ = is_template;
     }
 
     pub fn set_icon_with_as_template(&self, icon: Option<Icon>, is_template: bool) -> Result<()> {
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", target_env = "ohos"))]
         return self
             .tray
             .borrow_mut()
             .set_icon_with_as_template(icon, is_template);
-        #[cfg(not(target_os = "macos"))]
+        #[cfg(not(any(target_os = "macos", target_env = "ohos")))]
         {
             let _ = icon;
             let _ = is_template;
@@ -475,10 +629,19 @@ impl TrayIcon {
     /// ## Platform-specific:
     ///
     /// - **Linux:** Unsupported.
+    /// - **OHOS:** Unsupported. Left-click behavior is configured per-icon via
+    ///   [`TrayIcon::set_quick_operation`] instead.
     pub fn set_show_menu_on_left_click(&self, enable: bool) {
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         self.tray.borrow_mut().set_show_menu_on_left_click(enable);
-        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+        #[cfg(target_env = "ohos")]
+        {
+            let _ = enable;
+            log::warn!(
+                "[TrayIcon] set_show_menu_on_left_click is not supported on OpenHarmony; use set_quick_operation to configure the left-click popup"
+            );
+        }
+        #[cfg(not(any(target_os = "macos", target_os = "windows", target_env = "ohos")))]
         let _ = enable;
     }
 
@@ -487,10 +650,19 @@ impl TrayIcon {
     /// ## Platform-specific:
     ///
     /// - **Linux:** Unsupported.
+    /// - **OHOS:** Unsupported. Menu presentation for status bar icons is
+    ///   system-controlled.
     pub fn set_show_menu_on_right_click(&self, enable: bool) {
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         self.tray.borrow_mut().set_show_menu_on_right_click(enable);
-        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+        #[cfg(target_env = "ohos")]
+        {
+            let _ = enable;
+            log::warn!(
+                "[TrayIcon] set_show_menu_on_right_click is not supported on OpenHarmony"
+            );
+        }
+        #[cfg(not(any(target_os = "macos", target_os = "windows", target_env = "ohos")))]
         let _ = enable;
     }
 
@@ -502,9 +674,27 @@ impl TrayIcon {
     /// ## Platform-specific:
     ///
     /// - **Linux:** Unsupported.
+    /// - **OHOS:** Unsupported. statusBarManager has no API to programmatically trigger the menu.
     pub fn show_menu(&self) {
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         self.tray.borrow().show_menu();
+        #[cfg(target_env = "ohos")]
+        log::warn!(
+            "[TrayIcon] show_menu is not supported on OpenHarmony: statusBarManager has no API to programmatically trigger the menu"
+        );
+    }
+
+    /// Set QuickOperation for left-click popup. **OHOS only**.
+    ///
+    /// On OHOS, configures the system popup panel shown when the user left-clicks
+    /// the tray icon. Pass `None` to disable the popup (left-click will only fire events).
+    ///
+    /// On other platforms, this is silently ignored.
+    pub fn set_quick_operation(&self, config: Option<QuickOperationConfig>) {
+        #[cfg(target_env = "ohos")]
+        self.tray.borrow_mut().set_quick_operation(config);
+        #[cfg(not(target_env = "ohos"))]
+        let _ = config;
     }
 
     /// Get tray icon rect.
@@ -512,6 +702,7 @@ impl TrayIcon {
     /// ## Platform-specific:
     ///
     /// - **Linux**: Unsupported.
+    /// - **OHOS**: Unsupported — always returns `None`.
     pub fn rect(&self) -> Option<Rect> {
         self.tray.borrow().rect()
     }
@@ -537,7 +728,7 @@ impl TrayIcon {
     /// # Safety
     ///
     /// The returned pointer is valid as long as the `TrayIcon` is.
-    #[cfg(all(unix, not(target_os = "macos")))]
+    #[cfg(all(unix, not(target_os = "macos"), not(target_env = "ohos")))]
     pub unsafe fn app_indicator(&self) -> *const libappindicator::AppIndicator {
         self.tray.borrow().app_indicator() as *const _
     }
@@ -738,5 +929,35 @@ mod tests {
                 }
             })
         )
+    }
+
+    #[test]
+    fn quick_operation_config_default() {
+        use super::*;
+        let config = QuickOperationConfig::default();
+        assert!(config.title.is_empty());
+        assert_eq!(config.height, 200);
+        assert!(config.ability_name.is_empty());
+        assert!(config.module_name.is_none());
+        assert!(config.loading_status.is_none());
+    }
+
+    #[test]
+    fn builder_with_quick_operation() {
+        use super::*;
+        let config = QuickOperationConfig {
+            title: "Test Title".into(),
+            height: 300,
+            ability_name: "TestAbility".into(),
+            module_name: Some("entry".into()),
+            loading_status: Some(true),
+        };
+        let builder = TrayIconBuilder::new().with_quick_operation(config);
+        let qo = builder.attrs.quick_operation.as_ref().unwrap();
+        assert_eq!(qo.title, "Test Title");
+        assert_eq!(qo.height, 300);
+        assert_eq!(qo.ability_name, "TestAbility");
+        assert_eq!(qo.module_name, Some("entry".into()));
+        assert_eq!(qo.loading_status, Some(true));
     }
 }

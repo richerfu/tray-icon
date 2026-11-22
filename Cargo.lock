@@ -123,7 +123,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e89da841a80418a9b391ebaea17f5c112ffaaa96f621d2c285b5174da76b9011"
 dependencies = [
  "cfg-if",
- "getrandom",
+ "getrandom 0.2.15",
  "once_cell",
  "version_check",
  "zerocopy",
@@ -440,6 +440,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
+name = "base64"
+version = "0.22.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
+
+[[package]]
 name = "bit-set"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -697,6 +703,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "convert_case"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec182b0ca2f35d8fc196cf3404988fd8b8c739a4d270ff118a398feb0cbec1ca"
+dependencies = [
+ "unicode-segmentation",
+]
+
+[[package]]
+name = "convert_case"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "affbf0190ed2caf063e3def54ff444b449371d55c58e513a95ab98eca50adb49"
+dependencies = [
+ "unicode-segmentation",
+]
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -811,6 +835,15 @@ checksum = "1bfb12502f3fc46cca1bb51ac28df9d618d813cdc3d2f25b9fe775a34af26bb3"
 dependencies = [
  "generic-array",
  "typenum",
+]
+
+[[package]]
+name = "ctor"
+version = "1.0.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ea691ed9f36489d087419b8b2ba3ef27d89621380b4178c73e2445a379e4e0f4"
+dependencies = [
+ "link-section",
 ]
 
 [[package]]
@@ -1224,12 +1257,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "futures"
+version = "0.3.31"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "65bc07b1a8bc7c85c5f2e110c476c7389b4554ba72af57d8445ea63a576b0876"
+dependencies = [
+ "futures-channel",
+ "futures-core",
+ "futures-executor",
+ "futures-io",
+ "futures-sink",
+ "futures-task",
+ "futures-util",
+]
+
+[[package]]
 name = "futures-channel"
 version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dff15bf788c671c1934e366d07e30c1814a8ef514e1af724a602e8a2fbe1b10"
 dependencies = [
  "futures-core",
+ "futures-sink",
 ]
 
 [[package]]
@@ -1297,6 +1346,7 @@ version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9fa08315bb612088cc391249efdc3bc77536f16c91f6cf495e6fbe85b20a4a81"
 dependencies = [
+ "futures-channel",
  "futures-core",
  "futures-io",
  "futures-macro",
@@ -1422,6 +1472,17 @@ dependencies = [
  "cfg-if",
  "libc",
  "wasi",
+]
+
+[[package]]
+name = "getrandom"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "300e883d756b2e4ec94e02791f39b04b522276138852cfc41d9fb7e904106099"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "r-efi",
 ]
 
 [[package]]
@@ -2051,6 +2112,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "libloading"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1832accd5a4ca2795ace4d05d15c4039be15b62d3b950eff99746a990e3cc10"
+dependencies = [
+ "cfg-if",
+ "windows-link 0.2.1",
+]
+
+[[package]]
 name = "libredox"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2079,6 +2150,12 @@ dependencies = [
  "libc",
  "x11",
 ]
+
+[[package]]
+name = "link-section"
+version = "0.19.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4d9aae57673c1a235149777a74d152f3210ebd3e3b13346d2cdb6809e566bd3c"
 
 [[package]]
 name = "linux-raw-sys"
@@ -2208,12 +2285,69 @@ dependencies = [
  "hexf-parse",
  "indexmap",
  "log",
- "rustc-hash",
+ "rustc-hash 1.1.0",
  "spirv",
  "strum",
  "termcolor",
  "thiserror 2.0.11",
  "unicode-xid",
+]
+
+[[package]]
+name = "napi-build-ohos"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "617bcd176a3dc3d96c0acad112a482f592242d6fba6773a9eb8d90e042a35260"
+
+[[package]]
+name = "napi-derive-backend-ohos"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5b06bf282ab442eed04c89f8a833bd06d4cf22f18654f50d848449db9e94438a"
+dependencies = [
+ "convert_case 0.11.0",
+ "proc-macro2",
+ "quote",
+ "semver",
+ "syn 2.0.96",
+]
+
+[[package]]
+name = "napi-derive-ohos"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "419b1721d9f21d76c1a5cb38e2628211cb786b5efb9e1dd2fc049ba1cb938e47"
+dependencies = [
+ "convert_case 0.11.0",
+ "ctor",
+ "napi-derive-backend-ohos",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.96",
+]
+
+[[package]]
+name = "napi-ohos"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe1a014105134b7889e85f5ab6f8ec5240db43ed37e6c4a38bd7b4a164b345e0"
+dependencies = [
+ "bitflags 2.8.0",
+ "ctor",
+ "futures",
+ "napi-build-ohos",
+ "napi-sys-ohos",
+ "nohash-hasher",
+ "rustc-hash 2.1.3",
+]
+
+[[package]]
+name = "napi-sys-ohos"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "266964b97e57f3ca023ed13e7c78d4c8f3900aa00466bbeb8cb7746653cabc5f"
+dependencies = [
+ "libloading 0.9.1",
 ]
 
 [[package]]
@@ -2570,10 +2704,377 @@ dependencies = [
 ]
 
 [[package]]
+name = "ohos-accessibility-binding"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "627d99fc7c5e585c3a482a6b8d54cf8e6f7c737117ede592100089f65bfe6e44"
+dependencies = [
+ "bitflags 2.8.0",
+ "ohos-accessibility-sys",
+ "ohos-arkui-input-sys",
+ "ohos-enum-derive",
+]
+
+[[package]]
+name = "ohos-accessibility-sys"
+version = "0.0.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b0c98fcf8ba4538109d272a1136c39ecb5e71fffaeed85a9c03f0a6636a1c68"
+dependencies = [
+ "ohos-arkui-input-sys",
+]
+
+[[package]]
+name = "ohos-arkui-binding"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c4ca77cd4fcf239a53b51029e691035a8f88a373dd6d255443dc13465d2c389e"
+dependencies = [
+ "bitflags 2.8.0",
+ "log",
+ "napi-ohos",
+ "napi-sys-ohos",
+ "ohos-arkui-input-binding",
+ "ohos-arkui-sys",
+ "ohos-enum-derive",
+ "ohos-xcomponent-binding",
+ "ohos-xcomponent-sys",
+]
+
+[[package]]
+name = "ohos-arkui-input-binding"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ed7306bd8aa8ea2d5b93d7a518db84cf584f1c53b6dbcbf3b42f4d7ed1372d2d"
+dependencies = [
+ "ohos-arkui-input-sys",
+ "ohos-enum-derive",
+]
+
+[[package]]
+name = "ohos-arkui-input-sys"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22d658c88d3692ded92e2dc17912483950b8f3abee189c8a215a8e6e63dbdf29"
+
+[[package]]
+name = "ohos-arkui-sys"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6eec1dc201dc1351f7876200dffd66b380a235589b2a03b7df2bae1481a44681"
+dependencies = [
+ "napi-sys-ohos",
+ "ohos-arkui-input-sys",
+ "ohos-image-native-sys",
+ "ohos-native-drawing-sys",
+ "ohos-udmf-sys",
+]
+
+[[package]]
+name = "ohos-device-binding"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d1e79e623b0d9eacee56d9968b66b4f586477201fd5fb234cccf05b5d6979baa"
+dependencies = [
+ "ohos-device-sys",
+]
+
+[[package]]
+name = "ohos-device-sys"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be3125873f2c81c78eccc7b2f2a32e37943e1d2a35132848173ad783d5320b14"
+
+[[package]]
+name = "ohos-display-binding"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "989b820077ed0dc55afb4272276c1f8e42f17340340722392fc67bfe9c36e1ac"
+dependencies = [
+ "ohos-display-sys",
+ "ohos-enum-derive",
+]
+
+[[package]]
+name = "ohos-display-sys"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fa6cca5bbc6612f386af26a41f458913aa6b9a06b90bcff36fb8a436f6996e7c"
+
+[[package]]
+name = "ohos-enum-derive"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2988e3067c0c79d34254847f0ecce89ff7fea9a6bf45aa3874e192662ae1581"
+dependencies = [
+ "convert_case 0.6.0",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.96",
+]
+
+[[package]]
+name = "ohos-hilog-binding"
+version = "0.2.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dce895ad9a0dc93e065fb519d637806653d56ad29d0cc00d05f723c4ebabc83e"
+dependencies = [
+ "ohos-enum-derive",
+ "ohos-hilogs-sys",
+]
+
+[[package]]
+name = "ohos-hilogs-sys"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "186ff2f4c7c551fdc3497d2e814744e723850651ceba1fdcf988bcf9b29cf7cb"
+
+[[package]]
+name = "ohos-image-native-binding"
+version = "0.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "99ea00b7c1ea1e69b9c147ebeab54926fb576a81bcdada0fff11b76b40da1a3d"
+dependencies = [
+ "libc",
+ "napi-sys-ohos",
+ "ohos-enum-derive",
+ "ohos-image-native-sys",
+ "ohos-native-buffer-binding",
+ "ohos-native-buffer-sys",
+ "ohos-resource-manager-sys",
+]
+
+[[package]]
+name = "ohos-image-native-sys"
+version = "0.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5ec4c6bbd3d73f0240554856df008ae23e36329dc8c3b01679ca6a01590fd56c"
+dependencies = [
+ "napi-sys-ohos",
+ "ohos-native-buffer-sys",
+ "ohos-resource-manager-sys",
+]
+
+[[package]]
+name = "ohos-image-sys"
+version = "0.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cfb45fb8ec3a946a0910b0dc73fc334d99499e0682fa6562f38a2ec0b32201bf"
+dependencies = [
+ "napi-sys-ohos",
+ "ohos-resource-manager-sys",
+]
+
+[[package]]
+name = "ohos-ime-binding"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3e3fe96648595fde6d088d11e25041f1eae899d34940435b54fe2943b83ebb22"
+dependencies = [
+ "log",
+ "ohos-enum-derive",
+ "ohos-input-method-sys",
+ "rustc-hash 2.1.3",
+]
+
+[[package]]
+name = "ohos-init-binding"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4196292a03732a0e6451f0bdf2e11452187b0030cf3a9d30d86e9b420a6b811a"
+dependencies = [
+ "ohos-init-sys",
+]
+
+[[package]]
+name = "ohos-init-sys"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2268ec3fe2db7f5a1b5a226aa5ae5376e7f540ee27b1f397211149df6ae83fb3"
+
+[[package]]
+name = "ohos-input-method-sys"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8cf38704ff06be3ca77de9595511c6462dc3c4f3cc02ebe0c0b5fa10aecc3357"
+
+[[package]]
+name = "ohos-multi-modal-input-sys"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e0c4d0a6f6f4144c2271414f64f50dc9757e9bc4a31a4a88e0b077a879871ab0"
+dependencies = [
+ "ohos-image-native-sys",
+]
+
+[[package]]
+name = "ohos-native-buffer-binding"
+version = "0.2.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af79dd750b66d5cd15a678ef2a83b76874eff200bbad270c95d4e46729144b8d"
+dependencies = [
+ "ohos-native-buffer-sys",
+ "ohos-native-window-sys",
+]
+
+[[package]]
+name = "ohos-native-buffer-sys"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b6ba945cd0cf39746f6f364709ac5a9f6850e59b6d226d7a0d970d65e5ebd2d5"
+
+[[package]]
+name = "ohos-native-drawing-sys"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dabfdf9c2eb222f087a8148c5e0fbbfa232e32d261ad3f6dd0edaa32168f11ca"
+dependencies = [
+ "ohos-image-native-sys",
+ "ohos-image-sys",
+]
+
+[[package]]
+name = "ohos-native-window-manager-sys"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d4ad126474d6a8a09612bd09369edb2b37b897683f673a4c5f41ed558dca65c1"
+dependencies = [
+ "ohos-multi-modal-input-sys",
+]
+
+[[package]]
+name = "ohos-native-window-sys"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a41aaf0b64c8f0caa005ac1e2775cf8385f886667b62dacbc6441bf10d1d066"
+dependencies = [
+ "ohos-native-buffer-sys",
+]
+
+[[package]]
+name = "ohos-resource-manager-binding"
+version = "0.3.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0491b4fa994dba391abe08ceee407285a023de53bed0a43752314b0be1336c84"
+dependencies = [
+ "napi-ohos",
+ "ohos-resource-manager-sys",
+]
+
+[[package]]
+name = "ohos-resource-manager-sys"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f975fc2f533a962a33e68c7fe8ed28b332b7c8e84981865726f3e2429a06a5d2"
+dependencies = [
+ "napi-sys-ohos",
+]
+
+[[package]]
+name = "ohos-udmf-sys"
+version = "0.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bb0fbdf76430b57da06eee20dd9e8197acce4c561006ddc1f438979b67b04a66"
+dependencies = [
+ "ohos-image-native-sys",
+]
+
+[[package]]
+name = "ohos-window-manager-binding"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9e09753a593f8163428320183715d7856d23a2402a6124a10df5c6ea46b8dd5"
+dependencies = [
+ "ohos-enum-derive",
+ "ohos-image-native-binding",
+ "ohos-multi-modal-input-sys",
+ "ohos-native-window-manager-sys",
+]
+
+[[package]]
+name = "ohos-xcomponent-binding"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f3a188784b1b208b7a10966235d51dfbae26f86bad71b1c24a0e621a8536fccd"
+dependencies = [
+ "napi-derive-ohos",
+ "napi-ohos",
+ "napi-sys-ohos",
+ "ohos-accessibility-binding",
+ "ohos-arkui-input-binding",
+ "ohos-enum-derive",
+ "ohos-hilog-binding",
+ "ohos-xcomponent-sys",
+ "raw-window-handle",
+]
+
+[[package]]
+name = "ohos-xcomponent-sys"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b21c83d6ca2661dee4dc2be822e318abbe5ded07ca3ba745ca8089ee24f91ece"
+dependencies = [
+ "ohos-accessibility-sys",
+ "ohos-arkui-input-sys",
+ "ohos-arkui-sys",
+]
+
+[[package]]
 name = "once_cell"
 version = "1.20.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1261fe7e33c73b354eab43b1273a57c8f967d0391e80353e51f764ac02cf6775"
+
+[[package]]
+name = "openharmony-ability"
+version = "1.0.0-beta.5"
+source = "git+https://github.com/harmony-contrib/openharmony-ability?branch=codex/complete-platform-capabilities#63be76349806e69211b07e24043872583f758622"
+dependencies = [
+ "futures-channel",
+ "log",
+ "napi-derive-ohos",
+ "napi-ohos",
+ "ohos-arkui-binding",
+ "ohos-device-binding",
+ "ohos-display-binding",
+ "ohos-image-native-binding",
+ "ohos-ime-binding",
+ "ohos-init-binding",
+ "ohos-resource-manager-binding",
+ "ohos-window-manager-binding",
+ "ohos-xcomponent-binding",
+ "png 0.17.16",
+ "serde",
+ "serde_json",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "openharmony-ability-plugin-menu"
+version = "1.0.0-beta.5"
+source = "git+https://github.com/harmony-contrib/openharmony-ability?branch=codex/complete-platform-capabilities#63be76349806e69211b07e24043872583f758622"
+dependencies = [
+ "crossbeam-channel",
+ "napi-derive-ohos",
+ "napi-ohos",
+ "openharmony-ability",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "openharmony-ability-plugin-statusbar"
+version = "1.0.0-beta.5"
+source = "git+https://github.com/harmony-contrib/openharmony-ability?branch=codex/complete-platform-capabilities#63be76349806e69211b07e24043872583f758622"
+dependencies = [
+ "crossbeam-channel",
+ "napi-derive-ohos",
+ "napi-ohos",
+ "openharmony-ability",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "option-ext"
@@ -2879,6 +3380,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "r-efi"
+version = "6.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
+
+[[package]]
 name = "rand"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2905,7 +3412,7 @@ version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
- "getrandom",
+ "getrandom 0.2.15",
 ]
 
 [[package]]
@@ -2938,7 +3445,7 @@ version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd6f9d3d47bdd2ad6945c5015a226ec6155d0bcdfd8f7cd29f86b71f8de99d2b"
 dependencies = [
- "getrandom",
+ "getrandom 0.2.15",
  "libredox",
  "thiserror 2.0.11",
 ]
@@ -2954,6 +3461,12 @@ name = "rustc-hash"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
+
+[[package]]
+name = "rustc-hash"
+version = "2.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b1e7f9a428571be2dc5bc0505c13fb6bf936822b894ec87abf8a08a4e51742d"
 
 [[package]]
 name = "rustc_version"
@@ -3341,7 +3854,7 @@ checksum = "9a8a559c81686f576e8cd0290cd2a24a2a9ad80c98b3478856500fcbd7acd704"
 dependencies = [
  "cfg-if",
  "fastrand",
- "getrandom",
+ "getrandom 0.2.15",
  "once_cell",
  "rustix",
  "windows-sys 0.59.0",
@@ -3443,6 +3956,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokio"
+version = "1.54.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b52fd3255258d26fac7264ab5a76b53c13367136dc011d3d6ad4f8ed070396a3"
+dependencies = [
+ "pin-project-lite",
+]
+
+[[package]]
 name = "toml"
 version = "0.8.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3533,12 +4055,15 @@ dependencies = [
 name = "tray-icon"
 version = "0.24.0"
 dependencies = [
+ "base64",
  "crossbeam-channel",
  "dirs",
  "eframe",
+ "futures-executor",
  "gtk",
  "image",
  "libappindicator",
+ "log",
  "muda",
  "objc2 0.6.4",
  "objc2-app-kit 0.3.0",
@@ -3546,6 +4071,9 @@ dependencies = [
  "objc2-core-graphics",
  "objc2-foundation 0.3.0",
  "once_cell",
+ "openharmony-ability",
+ "openharmony-ability-plugin-menu",
+ "openharmony-ability-plugin-statusbar",
  "png 0.18.0",
  "serde",
  "serde_json",
@@ -3567,7 +4095,7 @@ version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "deb68604048ff8fa93347f02441e4487594adc20bb8a084f9e564d2b827a0a9f"
 dependencies = [
- "rustc-hash",
+ "rustc-hash 1.1.0",
 ]
 
 [[package]]
@@ -3633,6 +4161,17 @@ name = "utf8_iter"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6c140620e7ffbb22c2dee59cafe6084a59b5ffc27a8859a5f0d494b5d52b6be"
+
+[[package]]
+name = "uuid"
+version = "1.29.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3c14b15dffa2f4bd712103e857140aa04a4f2ff6e955c77d7eb8e53ee02a3b64"
+dependencies = [
+ "getrandom 0.4.3",
+ "js-sys",
+ "wasm-bindgen",
+]
 
 [[package]]
 name = "version-compare"
@@ -3929,7 +4468,7 @@ dependencies = [
  "parking_lot",
  "profiling",
  "raw-window-handle",
- "rustc-hash",
+ "rustc-hash 1.1.0",
  "smallvec",
  "thiserror 2.0.11",
  "wgpu-hal",
@@ -3968,7 +4507,7 @@ dependencies = [
  "profiling",
  "raw-window-handle",
  "renderdoc-sys",
- "rustc-hash",
+ "rustc-hash 1.1.0",
  "smallvec",
  "thiserror 2.0.11",
  "wasm-bindgen",
