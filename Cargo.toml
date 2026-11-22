@@ -25,7 +25,7 @@ common-controls-v6 = ["muda/common-controls-v6"]
 gtk = ["muda/gtk", "dep:libappindicator"]
 
 [dependencies]
-muda = { version = "0.19.1", default-features = false }
+muda = { git = "https://github.com/richerfu/muda", branch = "feat-openharmony", default-features = false }
 crossbeam-channel = "0.5"
 once_cell = "1"
 thiserror = "2"

@@ -2252,21 +2252,25 @@ dependencies = [
 [[package]]
 name = "muda"
 version = "0.19.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ae8844f63b5b118e334e205585b8c5c17b984121dbdb179d44aeb087ffad3cb"
+source = "git+https://github.com/richerfu/muda?branch=feat-openharmony#a8ba5892e483784e9b1b7f5114cee1bb0a25938c"
 dependencies = [
+ "base64",
  "crossbeam-channel",
  "dpi",
+ "futures-executor",
  "gtk",
  "keyboard-types",
  "libxdo",
+ "log",
  "objc2 0.6.4",
  "objc2-app-kit 0.3.0",
  "objc2-core-foundation",
  "objc2-foundation 0.3.0",
  "once_cell",
+ "openharmony-ability-plugin-menu",
  "png 0.18.0",
  "serde",
+ "serde_json",
  "thiserror 2.0.11",
  "windows-sys 0.60.2",
 ]
